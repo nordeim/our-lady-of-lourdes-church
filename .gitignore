@@ -1,0 +1,42 @@
+node_modules/
+.next/
+venv/
+.venv/
+.venv
+vendor/
+bak.git/
+/plan/
+/backup/
+nohup.out
+.windsurfrules
+/upload/
+src.orig/
+.agent
+.gemini
+.claude
+.agents
+dist/
+playwright-report/
+test-results/
+coverage/
+docs/ssh-key.txt
+/package-lock.json
+docs/audit-shots-round5/
+/scripts/*
+# round-19: the CSP hash-injection build step is shipped source (the repo's
+# own `pnpm build` depends on it) — tracked despite the historical /scripts/
+# ignore (which was for local scratch); the .d.mts ships with it.
+!/scripts/inject-csp-hashes.mjs
+!/scripts/inject-csp-hashes.d.mts
+
+# binary docs — do not track zipped image packs (root + docs only; the
+# vendored skills/ tree intentionally keeps its own zips + npm locks)
+/*.zip
+/docs/*.zip
+
+# NOTE (round-13): `skills/` is intentionally NOT ignored — the vendored
+# catalog is tracked by policy (README "Contributing"); the old `skills/`
+# ignore rule predated `0be0fe8` and made 2,360 tracked files match
+# .gitignore (the L14 "ignore does not untrack" trap in reverse).
+# `src.orig/` stays ignored: it is a local-only port-session artifact and was
+# never part of the repository.
