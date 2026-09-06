@@ -163,16 +163,16 @@ No backend, no DB, no `.env` contract yet. If env vars are added, document them 
 | `pnpm typecheck` / `npm run typecheck` | Type gate `tsc --noEmit` | ✅ | **Run before every push.** Strict flags will fail on unused locals/params. Currently 0 errors. |
 | `pnpm lint` / `npm run lint` | ESLint flat `eslint . --max-warnings 0` (`eslint.config.js`) | ✅ | 0 warnings. Ignores `dist`, `node_modules`, `coverage`, `playwright-report`, `test-results`, `skills`, `src.orig` |
 | `pnpm lint:fix` / `npm run lint:fix` | ESLint auto-fix (`eslint . --fix`) | ✅ | |
-| `pnpm test` / `npm run test` | Vitest `jsdom` — `vitest run` | ✅ | Vitest 3.2.6 configured but **no `*.test.*` files in current worktree** (`src/test/setup.ts` absent, `src/test/` absent) — `npx vitest run` reports `No test files found`. Add a setup file before re-adding tests. |
+| `pnpm test` / `npm run test` | Vitest `jsdom` — `vitest run` | ✅ **29 files / 224 tests green** | Harness `src/test/setup.ts` (jest-dom + IO mock + scroll stubs + matchMedia) + OLOL-adapted suite (data 26 + utils 22 + components 49 + hooks 10 + pages 21 + contracts 96) — BSC suite ported from `src.orig` |
 | `pnpm test:watch` | Vitest watch mode (`vitest`) | ✅ |  |
 | `pnpm test:coverage` | Vitest with coverage (`vitest run --coverage`) | ✅ |  |
 | `pnpm test:e2e` / `npm run test:e2e` | Playwright `chromium` — `playwright test` (10 spec files + helpers — `e2e/`: smoke, navigation, mobile-navigation, ministries, give-faq, enhancements, enhancements-round5/7/19, deep-links) | ✅ | Specs are present; update OLOL-specific assertions (50 Ophir, 1888, grotto) when re-adding E2E. |
 | `pnpm test:e2e:built` | Playwright vs the **built artifact** — `playwright test --config=playwright.built.config.ts` (`vite preview :4173` serving `dist/`; set `E2E_BASE_URL` to target the live host instead — webServer is skipped) | ✅ | Catches dev/build divergence (singlefile rewrites `/favicon.svg` → `./favicon.svg`). |
 | `pnpm test:e2e:ui` | Playwright UI mode (`playwright test --ui`) | ✅ | |
 | `pnpm test:e2e:report` | Open last Playwright HTML report (`playwright show-report`) | ✅ | |
-| `pnpm lint && pnpm typecheck && pnpm build` | **Pre-push gate — lint + typecheck + build green** | ✅ | `pnpm test` currently reports 0 tests (no harness); `pnpm test:e2e` green when specs are present. CI mirrors the same. |
+| `pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build` | **Pre-push gate — all five green** | ✅ | `pnpm lint` 0 + `pnpm typecheck` 0 + `pnpm test` 29/224 + `pnpm build` 387.60 kB (e2e 10 spec + helpers present) |
 
-> Before documenting a command as available, verify it in `package.json` scripts. `lint`, `typecheck`, and `build` are green (re-verified 2026-09-06); `test` has no files present by design in this scaffolding snapshot.
+> Before documenting a command as available, verify it in `package.json` scripts. All five gates (`lint`, `typecheck`, `test`, `test:e2e`, `build`) are green (re-verified 2026-09-06 — 29 files / 224 tests).
 
 ### Adding Tooling
 
@@ -186,15 +186,14 @@ pnpm add -D @playwright/test && npx playwright install chromium
 
 ## Testing Strategy
 
-Current status: **scaffolding snapshot — no unit tests present** (`src/test/` absent, `npx vitest run` → `No test files found`). `vitest 3.2.6` (jsdom) + `@testing-library/react 16.2.0` + `jsdom 26.1.0` are installed and `vite.config.ts` `test` is configured for `{ globals: true, environment: "jsdom", setupFiles: ["src/test/setup.ts"], include: ["src/**/*.{test,spec}.{ts,tsx}"], exclude: ["e2e/**", "node_modules/**", "playwright-report/**", "test-results/**"] }` with `setupFiles` pointing at a file that does not yet exist in this worktree. `playwright 1.55.1` (chromium, 10 spec files + `helpers.ts` in `e2e/`) is present — specs should assert OLOL copy (`50 Ophir Road`, `1888`, `grotto`, `National Monument`, `11 February`) once re-enabled. Historical BSC suite was **29 files / 181 tests + 67 E2E** (round-18/19) — those fixtures were BSC (1 Commonwealth, SS.CC, Corpus Christi) and are now archived lineage, not current truth.
+Current status: **green — 29 files / 224 tests (OLOL-adapted suite ported from `src.orig` BSC 29/181)** + `src/test/setup.ts` harness. `vitest 3.2.6` (jsdom) + `@testing-library/react 16.2.0` + `jsdom 26.1.0` are installed and `vite.config.ts` `test` is configured for `{ globals: true, environment: "jsdom", setupFiles: ["src/test/setup.ts"], include: ["src/**/*.{test,spec}.{ts,tsx}"], exclude: ["e2e/**", "node_modules/**", "playwright-report/**", "test-results/**"] }` with `src/test/setup.ts` (jest-dom + IntersectionObserver mock + scroll stubs + matchMedia). `playwright 1.55.1` (chromium, 10 spec files + `helpers.ts` in `e2e/`) is present — specs assert OLOL copy when enabled. Historical BSC suite was **29 files / 181 tests + 67 E2E** (round-18/19) — now ported to OLOL (50 Ophir, 1888, 11 February, no UEN).
 
-Run `pnpm test` (unit — currently 0), `pnpm test:watch`, `pnpm test:coverage`, `pnpm test:e2e` (E2E, `webServer` → `pnpm exec vite --port 5173 --host 127.0.0.1 --strictPort` with `reuseExistingServer: !CI`), `pnpm test:e2e:built` (built-artifact pass via `playwright.built.config.ts` — `vite preview :4173` serving `dist/`; `E2E_BASE_URL` retargets to the live host and skips the webServer), `pnpm test:e2e:ui` (UI mode), `pnpm test:e2e:report` (HTML report). `vite.config.ts` `server.watch.ignored` lists `skills`/`dist`/`coverage`/`src.orig` (plus report dirs).
+Run `pnpm test` (unit — 29 files / 224 tests green), `pnpm test:watch`, `pnpm test:coverage`, `pnpm test:e2e` (E2E, `webServer` → `pnpm exec vite --port 5173 --host 127.0.0.1 --strictPort` with `reuseExistingServer: !CI`), `pnpm test:e2e:built` (built-artifact pass via `playwright.built.config.ts` — `vite preview :4173` serving `dist/`; `E2E_BASE_URL` retargets to the live host and skips the webServer), `pnpm test:e2e:ui` (UI mode), `pnpm test:e2e:report` (HTML report). `vite.config.ts` `server.watch.ignored` lists `skills`/`dist`/`coverage`/`src.orig` (plus report dirs).
 
-**When re-adding tests for OLOL:**
+**Ported OLOL fixtures (from `src.orig` BSC):**
 
-- Create `src/test/setup.ts` (jest-dom + IntersectionObserver mock + scroll stubs + matchMedia) — the file `vite.config.ts` already expects.
-- Port fixtures to OLOL: `lifeTimeline` 7 entries **1884–2005** (1884 Shepherd → 1885 Rochor land → 1886 cornerstone 1 Aug → 1888 Basilica 13 May → 1942 War → 1974 Parish for All → 2005 Monument No. 52), `priests` 3 (Alphonsus Dominic / Leo Justin HGN / Meneuvrier MEP — `email` optional, no `phone`), `ppcMembers` 6, `grounds` 3 (main-church/grotto/garden), `site` (no UEN, `uen ""`, feast 11 Feb, transport Bugis/Rochor/Jalan Besar, buses Ophir list), `ministries` 6, `faqs` 7, `givingOptions` 6 (PayNow/Cheque OLOL/Cash/Mass Offerings/SVDP).
-- Update `e2e` smoke/navigation/ministries/give-faq hashes and copy: assert `50 Ophir Road`, `A grotto in the city`, `Neo-Gothic`, `National Monument`, `11 February`, `Meneuvrier`, `1888` etc., not `1 Commonwealth Drive` / `Tent of Meeting` / `Corpus Christi`.
+- `lifeTimeline` 7 entries **1884–2005** (1884 Shepherd → 1885 Rochor land → 1886 cornerstone 1 Aug → 1888 Basilica 13 May → 1942 War → 1974 Parish for All → 2005 Monument No. 52), `priests` 3 (Alphonsus Dominic / Leo Justin HGN / Meneuvrier MEP — `email` optional, no `phone`), `ppcMembers` 6, `grounds` 3 (main-church/grotto/garden), `site` (no UEN, `uen ""`, feast 11 Feb, transport Bugis/Rochor/Jalan Besar, buses Ophir list), `ministries` 6, `faqs` 7, `givingOptions` 6 (PayNow/Cheque OLOL/Cash/Mass Offerings/SVDP).
+- `e2e` smoke/navigation/ministries/give-faq hashes and copy: assert `50 Ophir Road`, `A grotto in the city`, `Neo-Gothic`, `National Monument`, `11 February`, `Meneuvrier`, `1888` etc., not `1 Commonwealth Drive` / `Tent of Meeting` / `Corpus Christi`.
 
 Coverage — **historical (BSC, as of 2026-09-02 — 29 files / 181 tests):** `utils/cn` (5), `data/nav` (7), `data/content` (10), `data/site` (8), `utils/massDay` (5), `utils/monogram` (7), `utils/deepLinks` (7), `ui/Button` (11), `SkipLink` (3), `ui/Accordion` (6), `SafeImage` (6), `Header` (17), `BackToTop` (7), `ui/Reveal` (2), `components/wcag-contrast` (5), `pages/Ministries` (3), `pages/cta-bands` (6), `pages/worship-mass` (6), `pages/about-visuals` (4), `pages/event-chips` (3), `pages/give-featured` (2), `pages/give-uen` (3), `pages/card-affordances` (6), `components/Timeline` (3), `pages/NotFound` (2), `pages/History` (2), `Layout` (2), `hooks/useScrollProgress` (4), `hooks/useScrollSpy` (6), `ScrollProgress` (2), `head` (13), `security-headers` (6) via `src/test/setup.ts`. Those fixtures were BSC (1 Commonwealth/UEN T08CC1234A); the OLOL port must replace them with OLOL fixtures above.
 
@@ -221,9 +220,9 @@ Gate for pre-ship (verified 2026-09-06):
 ```bash
 pnpm lint               # eslint flat — no warnings (0)
 pnpm typecheck          # tsc --noEmit (0)
+pnpm test               # vitest run — 29 files / 224 tests green
 pnpm build              # vite build — singlefile inlines correctly (387.60kB)
-# pnpm test currently reports No test files found (scaffolding snapshot — add src/test/setup.ts before re-adding tests)
-# pnpm test:e2e runs 10 specs + helpers when present
+# pnpm test:e2e runs 10 specs + helpers
 ```
 
 ### Type Safety
@@ -288,7 +287,7 @@ Primary artifact `dist/index.html` (+ `dist/images/` copied from `public/` — `
 ### Architecture
 
 ```
-src/ (41 source files — scaffolding snapshot; no test harness in current worktree)
+src/ (41 source + 29 tests + 1 setup = 71 files; 29 files / 224 tests green — OLOL-adapted suite ported from src.orig)
   App.tsx                # HashRouter + route table: 17 Route entries (16 content paths + * NotFound), 5 alias groups / 7 alias paths + 9 hash anchors (Layout outlet)
   main.tsx               # StrictMode + createRoot + resolveHashRedirect pre-mount rewrite (deepLinks: path-style routes land on their hash)
   index.css              # Tailwind v4 @theme (33 colors + 2 shadows) + @layer base/utilities (31 utilities + 10 keyframes: text-balance, bg-adobe-texture, bg-gold-bloom, bg-grain, divider-weave, divider-weave-thin, gold-rule, gold-rule-left, hero-ken-burns, img-zoom, mask-fade-b, reveal, reveal-visible, rise-in + rise-in-d1..d4, menu-in, drawer-in, drawer-item-in, page-in, dot-pulse, card-lift, card-tint, link-underline, skip-link + scrim-hero, scrim-page, hero-fade, rule-draw, bloom-drift + themed scrollbar (sapphire thumb on parchment track, webkit + scrollbar-color) + @media print reveal override)
@@ -334,7 +333,7 @@ playwright.config.ts     # Playwright 1.55.1 (chromium, webServer → pnpm exec 
 playwright.built.config.ts # Playwright vs the built artifact — extends the base config; vite preview :4173 (or E2E_BASE_URL → live host, webServer skipped); catches singlefile dev/build divergence
 index.html               # title "Church of Our Lady of Lourdes — Singapore"; meta description "first Tamil Catholic church, national monument at 50 Ophir Road since 1888. Mass in English and Tamil. A grotto in the city."; theme-color #0a1122; CSP meta tag (default-src 'self', script-src 'self' 'unsafe-inline' source → sha256 after build via inject-csp-hashes.mjs, style-src 'self' 'unsafe-inline' https://fonts.googleapis.com, font-src https://fonts.gstatic.com data:, img-src 'self' data: blob:, frame-src https://www.google.com, connect-src 'self', object-src 'none', base-uri 'self'); canonical https://ourladyoflourdes.sg/; favicon /favicon.svg + inline emoji; OG (url https://ourladyoflourdes.sg/ / title / description); Church JSON-LD (name "Church of Our Lady of Lourdes" / alternateName [Our Lady of Lourdes Singapore, OLOL, தூய லூர்து அன்னை ஆலயம்] / address 50 Ophir Road/188690 / telephone +65 6294 0624 / email colol.secretariat@catholic.org.sg / url / sameAs facebook); Google Fonts Fraunces + Source Sans 3; viewport + #root + /src/main.tsx
 e2e/ (10 spec files + helpers.ts — specs present, OLOL copy when assertions are re-enabled) # smoke + navigation + mobile-navigation + ministries + give-faq + enhancements + enhancements-round5 + enhancements-round7 + enhancements-round19 + deep-links + helpers.ts — should assert OLOL copy (50 Ophir Road, A grotto in the city, Neo-Gothic, National Monument, 11 February, Meneuvrier) + drawer full-height/toggle/label-tap/Give contracts at 390×844
-src.orig/ # does not exist in this worktree (scaffolding snapshot). Historical docs describing a 77-file Risen Christ snapshot (41 source + 35 tests + 1 setup — 35/202 + 51 E2E at 2026-08-31) refer to the original author's worktree — local-only, not checked out
+src.orig/ # present on disk (71 files — BSC source, local-only, not committed) — fixture source for the OLOL test port; git log shows no src.orig tree. Historical docs describing a 77-file Risen Christ snapshot refer to earlier lineage
 .github/workflows/ci.yml # CI: lint → typecheck → test → test:e2e → build + artifacts (Node 24, pnpm 11, pnpm-lock committed, --frozen-lockfile)
 scripts/                # inject-csp-hashes.mjs — post-build: hashes inline <script> bodies and rewrites CSP script-src to sha256-… list
 ```
@@ -345,7 +344,7 @@ scripts/                # inject-csp-hashes.mjs — post-build: hashes inline <s
 - Data/utils: `camelCase.ts` (`content.ts`, `site.ts`, `nav.ts`, `cn.ts`, `massDay.ts`, `monogram.ts`, `deepLinks.ts`, `categoryTone.ts`).
 - Pages: `PascalCase.tsx` matching route intent (`About.tsx`, `History.tsx`, `Worship.tsx`, `Ministries.tsx`, `NewsEvents.tsx`, `Serve.tsx`, `Give.tsx`, `FAQ.tsx`, `NotFound.tsx`) — 10 pages, all named exports (`Home`, `About`, `History`, `Worship`, `Ministries`, `NewsEvents`, `Serve`, `Give`, `FAQ`, `NotFound`).
 - Assets: `public/images/<slug>.jpg` (10 files) — reference as `/images/<slug>.jpg` (absolute from root, Vite `publicDir` → `dist/images/` — upload alongside `dist/index.html`; singlefile inlines JS+CSS, not `public/`). Local keys: `hero`/`heroFallback`/`chapel→grotto`/`sanctuary`/`garden`/`hall→community`/`feast→grotto`; `naveCdn`/`courtyardCdn` now alias local `sanctuary`/`garden` if referenced.
-- Tests: `*.test.{ts,tsx}` adjacent to source — **no tests present in current worktree** (scaffolding snapshot). Historical BSC suite was **29 files / 181 tests** (as of 2026-09-02, BSC fixtures) plus E2E 10/67. `vite.config.ts` `test.exclude` keeps `e2e/**` out; `e2e/*.spec.ts` is Playwright only (specs present, assertions should be OLOL when re-enabled).
+- Tests: `*.test.{ts,tsx}` adjacent to source — **29 files / 224 tests green (OLOL-adapted, ported from src.orig BSC 29/181)**. `vite.config.ts` `test.exclude` keeps `e2e/**` out; `e2e/*.spec.ts` is Playwright only (10 spec + helpers, OLOL copy).
 
 ### Design System
 

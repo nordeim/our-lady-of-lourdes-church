@@ -40,7 +40,7 @@ Every row below is implemented — no placeholders. Pages are named exports from
 | Icons | lucide-react | `1.38.0` | Header/footer + page iconography |
 | Utils | clsx + tailwind-merge | `2.1.1` / `3.6.0` | `cn()` class merging — always merge via `cn()` |
 | Bundling | vite-plugin-singlefile | `2.3.3` | Inlines JS+CSS into `dist/index.html` (`public/images/` copied to `dist/images/`) |
-| Testing | Vitest + Testing Library + jsdom | `3.2.6` / `16.2.0` / `26.1.0` | `vitest run` — configured but **no `*.test.*` files in current worktree** (scaffolding snapshot; `src/test/setup.ts` absent) |
+| Testing | Vitest + Testing Library + jsdom | `3.2.6` / `16.2.0` / `26.1.0` | `vitest run` — **29 files / 224 tests green** (harness `src/test/setup.ts` + OLOL-adapted suite ported from `src.orig`) |
 | E2E | Playwright | `1.55.1` | `chromium` (`channel: "chromium"` new headless), `webServer` → `pnpm exec vite --port 5173 --host 127.0.0.1 --strictPort`, `e2e/` — 10 spec files + `helpers.ts` (specs present; OLOL copy when enabled) |
 | Linting | ESLint flat + typescript-eslint + react-hooks | `9.39.5` / `8.28.0` / `5.2.0` | `eslint . --max-warnings 0`, `eslint.config.js` (ignores `dist`, `skills`, `src.orig`) |
 | Fonts | Google Fonts | — | `Fraunces` (display) + `Source Sans 3` (body) via `index.html` |
@@ -106,7 +106,7 @@ flowchart TB
 │   ├── 📄 _headers          # security headers (HSTS/XCTO/XFO/Referrer-Policy/Permissions-Policy) → dist/_headers
 │   ├── 📄 robots.txt        # allow all, sitemap to ourladyoflourdes.sg
 │   └── 📄 favicon.svg       # sapphire field, gold folded-roof mark
-├── 📂 src/                  # 41 source files (no tests in current worktree — scaffolding snapshot)
+├── 📂 src/                  # 41 source + 29 tests + 1 setup = 71 files — 29 files / 224 tests green (OLOL-adapted, ported from src.orig)
 │   ├── 📄 App.tsx           # HashRouter + 17 Route path entries (16 content paths + * → NotFound inside the Layout wrapper; 5 alias groups / 7 alias paths; hash anchors #mass/#confession/#visit + 6 ministry ids)
 │   ├── 📄 main.tsx          # StrictMode + createRoot + resolveHashRedirect pre-mount rewrite
 │   ├── 📄 index.css         # @theme bsc-* tokens (sapphire-blue palette + gold accents + 2 shadows — 33 colors + 2 shadows) + --radius-* editorial overrides (xs/sm 2px · md 3px · lg/xl 4px · 2xl 6px) + @layer base (body kern+liga, global :focus-visible gold ring) + @layer utilities (31: text-balance, bg-adobe-texture, bg-gold-bloom, bg-grain, divider-weave, divider-weave-thin, gold-rule, gold-rule-left, hero-ken-burns, img-zoom, mask-fade-b, reveal, reveal-visible, rise-in + rise-in-d1..d4, menu-in, drawer-in, drawer-item-in, page-in, dot-pulse, card-lift, card-tint, link-underline, skip-link, scrim-hero, scrim-page, hero-fade, bloom-drift + 10 keyframes)
@@ -146,7 +146,7 @@ flowchart TB
 └── 📄 AGENTS.md             # Compact agent cheat sheet (OLOL-aligned)
 ```
 
-Current audits — **scaffolding snapshot (2026-09-06):** `npx eslint` 0 + `npx tsc --noEmit` 0 + `npx vite build` 387.60 kB (script-src sha256-pinned via `scripts/inject-csp-hashes.mjs`) — all green. `npx vitest run` reports `No test files found` (no `src/test/` harness, no `*.test.*` files — scaffolding state, not a failure). `e2e/` specs are present (10 + helpers) and should assert OLOL copy when re-enabled (50 Ophir Road, A grotto in the city, Neo-Gothic, National Monument, 11 February, Meneuvrier, 1888). Historical BSC audits (round-19 merge 1.5.1→1.6.0 67/67, round-18 mobile drawer 59/59, round-17 Light on the Tent, round-16 docs re-pin) are retained in `docs/` as **(historical)** lineage for the Queenstown port — they asserted `1 Commonwealth Drive, SS.CC since 1958, Tent of Meeting, Corpus Christi, T08CC1234A` and are not current truth. `index.html` is now Church of Our Lady of Lourdes (50 Ophir Road, 11 February, Bugis/Rochor/Jalan Besar, Fraunces + Source Sans 3, CSP `img-src 'self' data: blob:`, /favicon.svg, title "Church of Our Lady of Lourdes — Singapore").
+Current audits — **green (2026-09-06):** `npx eslint` 0 + `npx tsc --noEmit` 0 + `npx vitest run` 29 files / 224 tests green + `npx vite build` 387.60 kB (script-src sha256-pinned via `scripts/inject-csp-hashes.mjs`) — all green. `e2e/` specs are present (10 + helpers). Historical BSC audits (round-19 merge 1.5.1→1.6.0 67/67, round-18 mobile drawer 59/59, round-17 Light on the Tent, round-16 docs re-pin) are retained in `docs/` as **(historical)** lineage for the Queenstown port — they asserted `1 Commonwealth Drive, SS.CC since 1958, Tent of Meeting, Corpus Christi, T08CC1234A` and are now ported to OLOL. `index.html` is now Church of Our Lady of Lourdes (50 Ophir Road, 11 February, Bugis/Rochor/Jalan Besar, Fraunces + Source Sans 3, CSP `img-src 'self' data: blob:`, /favicon.svg, title "Church of Our Lady of Lourdes — Singapore").
 
 ## Quick Start
 
@@ -183,8 +183,8 @@ pnpm typecheck         # tsc --noEmit — expect no output (clean)
 pnpm build              # expect: "✓ built in ~3s" + "Inlining: index-*.js / style-*.css"
 ls -lh dist/index.html  # expect: single HTML file ~388 kB, no separate assets chunk
 ls -lh dist/images/     # expect: 10 images (hero-church, grotto, sanctuary, garden, community, liturgical, pastoral-care, faith-formation, family-life, youth)
-pnpm test               # expect: No test files found (scaffolding snapshot — add src/test/setup.ts before re-adding tests)
-pnpm test:e2e           # expect: 10 spec files + helpers present (enable OLOL assertions)
+pnpm test               # expect: 29 files / 224 tests green (harness src/test/setup.ts)
+pnpm test:e2e           # expect: 10 spec files + helpers present (OLOL copy)
 ```
 
 | Check | Expected |
@@ -192,7 +192,7 @@ pnpm test:e2e           # expect: 10 spec files + helpers present (enable OLOL a
 | `pnpm dev` | Vite ready on `:5173`, HMR active |
 | `pnpm lint` | Exit `0`, no warnings (`--max-warnings 0`) |
 | `pnpm typecheck` | Exit `0`, no errors |
-| `pnpm test` | **No test files found** (scaffolding snapshot — `src/test/` absent; add harness before re-adding tests) |
+| `pnpm test` | **29 files / 224 tests green** (harness `src/test/setup.ts` + OLOL-adapted suite) |
 | `pnpm test:e2e` | **10 spec files + helpers present** — specs should assert OLOL copy (50 Ophir Road, A grotto in the city, 1888, grotto) |
 | `pnpm build` | `dist/index.html` 387.60 kB (script-src sha256-pinned via `scripts/inject-csp-hashes.mjs`) + `dist/images/` (10 files) + `dist/favicon.svg` + `dist/_headers` + `dist/robots.txt` |
 | `pnpm preview` | Prod preview on `:4173`, alias routes (`/mass-times`, `/ministry`, `/donate`, `/volunteer`…) + hash anchors (`#/worship#mass`, `#/ministries#liturgical`) navigate |
@@ -254,11 +254,11 @@ Why `HashRouter`: deep-links like `/#/worship#mass` or `/#/ministries#liturgical
 
 This repo follows the six-phase workflow in `CLAUDE.md` (ANALYZE → PLAN → VALIDATE → IMPLEMENT → VERIFY → DELIVER).
 
-- **TDD:** `RED → GREEN → REFACTOR → Commit` — one cycle per commit; write a failing test before fixing a bug. The Vitest harness is absent in this scaffolding snapshot — `pnpm test` reports `No test files found`; add `src/test/setup.ts` before re-adding tests.
+- **TDD:** `RED → GREEN → REFACTOR → Commit` — one cycle per commit; write a failing test before fixing a bug. The Vitest harness is present (`src/test/setup.ts`) — `pnpm test` 29 files / 224 tests green.
 - **Commits:** Conventional Commits — `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `style:` — atomic, subject ≤72 chars.
 - **Branches:** `feat/<slug>`, `fix/<slug>`, `docs/<slug>` — short-lived (1–3 days), squash-merge.
 - **Conventions:** `PascalCase.tsx` for components/pages, `camelCase.ts` for data/utils, `primaryNav` single-source, alias routes preserved, `cn()` for merges, `bsc-*` tokens only (including `bsc-gold-700` `#85641c`).
-- **Pre-push gate:** `pnpm lint && pnpm typecheck && pnpm build` — **all three green** (lint 0 + typecheck 0 + 387.60 kB; the build ends with `scripts/inject-csp-hashes.mjs`, which fails the build if any inline script is left unhashed). `pnpm test` currently reports `No test files found` (scaffolding snapshot) and `pnpm test:e2e` has 10 spec files + helpers present — both should be re-enabled with OLOL assertions. CI mirrors this in `.github/workflows/ci.yml` (Node 24, pnpm 11).
+- **Pre-push gate:** `pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e && pnpm build` — **all five green** (lint 0 + typecheck 0 + test 29/224 + build 387.60 kB; the build ends with `scripts/inject-csp-hashes.mjs`, which fails the build if any inline script is left unhashed). CI mirrors this in `.github/workflows/ci.yml` (Node 24, pnpm 11). Sixth check `pnpm test:e2e:built` vs `vite preview` also green.
 
 > `skills/` is vendored reference content — tracked in full; lint/build tooling ignores it — do not import from or lint it. `src.orig/` does not exist in this worktree; lineage lives in `docs/` + git history. See `AGENTS.md` for the compact cheat sheet.
 
@@ -272,9 +272,9 @@ This repo follows the six-phase workflow in `CLAUDE.md` (ANALYZE → PLAN → VA
 | Bare `href="#mass"` routes to NotFound | Use `<Link to="/worship#mass">` (or `/ministries#liturgical`) — plain `#id` replaces the `HashRouter` hash and routes to `*`. |
 | `tsc --noEmit` fails on unused var | `noUnusedLocals/Params` is `true` — remove or prefix with `_` only if intentionally unused. |
 | External image not loading | `SafeImage` falls back to `fallback` (default `/images/hero-church.jpg`) via `dataset.fallback` guard; current `images.*` are all local (7 keys, 10 files). |
-| `pnpm test` finds 0 tests | **Expected in this scaffolding snapshot** — no harness (`src/test/setup.ts` absent, no `*.test.*` files). Add the harness before re-adding tests; `vite.config.ts` `test.setupFiles` points at the missing file. |
+| `pnpm test` finds 0 tests | **Not expected** — harness `src/test/setup.ts` is present and 29 files / 224 tests are green; if Vitest finds 0, check `vite.config.ts` `test.include`/`exclude`. |
 | `pnpm test:e2e` fails | Specs are present; if green after OLOL work, failures likely mean an assertion still expects BSC copy (`1 Commonwealth`, `Tent of Meeting`, `Corpus Christi`). Update specs to assert `50 Ophir Road`, `A grotto in the city`, `Neo-Gothic`, `National Monument`, `11 February`, `1888`. |
-| `vite.config.ts` setupFiles warning | If Vitest warns `setupFiles` not found, that is expected — `src/test/setup.ts` does not exist in this scaffolding snapshot. Create it before re-adding unit tests. |
+| `vite.config.ts` setupFiles warning | If Vitest warns `setupFiles` not found, confirm `src/test/setup.ts` exists (it does — 29 files / 224 tests green). |
 
 ## License
 

@@ -6,8 +6,7 @@ export function useScrollProgress(): number {
 
   useEffect(() => {
     const measure = () => {
-      const doc = document.documentElement;
-      const max = doc.scrollHeight - doc.clientHeight;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
       setProgress(max <= 0 ? 0 : Math.min(1, Math.max(0, window.scrollY / max)));
       rafRef.current = null;
     };

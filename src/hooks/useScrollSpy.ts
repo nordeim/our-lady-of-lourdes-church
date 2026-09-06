@@ -20,7 +20,7 @@ export function useScrollSpy(ids: string[]): string {
           if (entry.isIntersecting) visible.add(entry.target.id);
           else visible.delete(entry.target.id);
         }
-        const next = ids.find((id) => visible.has(id));
+        const next = [...ids].reverse().find((id) => visible.has(id));
         if (next) setActive(next);
       },
       { rootMargin: "-20% 0px -55% 0px", threshold: [0, 0.25, 0.5] },

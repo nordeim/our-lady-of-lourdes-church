@@ -18,9 +18,9 @@ export const knownRoutePaths = [
 ] as const;
 
 export function resolveHashRedirect(pathname: string, hash: string): string | null {
-  if (pathname === "/" || hash.startsWith("#/")) return null;
-  const match = knownRoutePaths.find((path) => path === pathname);
-  if (!match) return null;
+  const path = pathname.replace(/\/$/, "");
+  if (path === "" || path === "/" || hash.startsWith("#/")) return null;
+  if (!(knownRoutePaths as readonly string[]).includes(path)) return null;
   const anchor = hash.startsWith("#") ? hash : "";
-  return `/#${match}${anchor}`;
+  return `/#${path}${anchor}`;
 }
